@@ -5,7 +5,7 @@ struct BackportAsyncImage<Content: View>: View {
     private let content: (AsyncImagePhase) -> Content
 
     init(url: URL?,
-         scale: CGFloat = 1,
+         scale: CGFloat,
          @ViewBuilder content: @escaping (AsyncImagePhase) -> Content) {
         self._viewModel = ObservedObject(initialValue: ViewModel(url: url))
         self.content = content
@@ -58,6 +58,7 @@ struct BackportAsyncImage_Previews: PreviewProvider {
     static var previews: some View {
         BackportAsyncImage(
             url: url,
+            scale: 1.0,
             content: { phase in
                 if let image = phase.image {
                     image
