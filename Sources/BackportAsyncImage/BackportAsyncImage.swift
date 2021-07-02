@@ -6,8 +6,9 @@ struct BackportAsyncImage<Content: View>: View {
 
     init(url: URL?,
          scale: CGFloat,
+         transaction: Transaction,
          @ViewBuilder content: @escaping (AsyncImagePhase) -> Content) {
-        self._viewModel = ObservedObject(initialValue: ViewModel(url: url))
+        self._viewModel = ObservedObject(initialValue: ViewModel(url: url, transaction: transaction))
         self.content = content
         viewModel.download()
     }
@@ -20,10 +21,12 @@ struct BackportAsyncImage<Content: View>: View {
 extension BackportAsyncImage {
     private final class ViewModel: ObservableObject {
         private let url: URL?
+        private let transaction: Transaction
         @Published var phase: AsyncImagePhase
 
-        init(url: URL?) {
+        init(url: URL?, transaction: Transaction) {
             self.url = url
+            self.transaction = transaction
             self.phase = .empty
         }
 
@@ -33,16 +36,21 @@ extension BackportAsyncImage {
             }
             URLSession.shared.dataTask(with: url) { data, _, error in
                 DispatchQueue.main.async { [weak self] in
+                    guard let self = self else {
+                        return
+                    }
                     if let error = error {
-                        self?.phase = .failure(error)
+                        self.phase = .failure(error)
                         return
                     }
 
-                    self?.phase = data
-                        .flatMap(UIImage.init(data:))
-                        .map(Image.init(uiImage:))
-                        .map{ AsyncImagePhase.success($0) }
-                    ?? .empty
+                    withTransaction(self.transaction) {
+                        self.phase = data
+                            .flatMap(UIImage.init(data:))
+                            .map(Image.init(uiImage:))
+                            .map{ AsyncImagePhase.success($0) }
+                        ?? .empty
+                    }
                 }
             }
             .resume()
@@ -59,6 +67,7 @@ struct BackportAsyncImage_Previews: PreviewProvider {
         BackportAsyncImage(
             url: url,
             scale: 1.0,
+            transaction: Transaction(animation: .linear),
             content: { phase in
                 if let image = phase.image {
                     image
