@@ -62,45 +62,45 @@ struct AsyncImage_Previews: PreviewProvider {
             AsyncImage(
                 url: url,
                 content: {
-                    $0
-                        .resizable()
-                        .clipShape(Circle())
-                },
+                $0
+                    .resizable()
+                    .clipShape(Circle())
+            },
                 placeholder: {
-                    Image(systemName: "square")
-                        .resizable()
-                }
+                Image(systemName: "square")
+                    .resizable()
+            }
             )
-            .frame(width: 100, height: 100)
+                .frame(width: 100, height: 100)
 
             AsyncImage(
                 url: url,
                 content: { phase in
-                    if let image = phase.image {
-                        image // Displays the loaded image.
-                    } else if phase.error != nil {
-                        Color.red // Indicates an error.
-                    } else {
-                        Color.blue // Acts as a placeholder.
-                    }
+                if let image = phase.image {
+                    image // Displays the loaded image.
+                } else if phase.error != nil {
+                    Color.red // Indicates an error.
+                } else {
+                    Color.blue // Acts as a placeholder.
                 }
+            }
             )
-            .frame(width: 100, height: 100)
+                .frame(width: 100, height: 100)
 
             AsyncImage(
                 url: url,
                 transaction: Transaction(animation: .linear),
                 content: { phase in
-                    if let image = phase.image {
-                        image // Displays the loaded image.
-                    } else if phase.error != nil {
-                        Color.red // Indicates an error.
-                    } else {
-                        Color.blue // Acts as a placeholder.
-                    }
+                if let image = phase.image {
+                    image // Displays the loaded image.
+                } else if phase.error != nil {
+                    Color.red // Indicates an error.
+                } else {
+                    Color.blue // Acts as a placeholder.
                 }
+            }
             )
-            .frame(width: 100, height: 100)
+                .frame(width: 100, height: 100)
         }
     }
 }

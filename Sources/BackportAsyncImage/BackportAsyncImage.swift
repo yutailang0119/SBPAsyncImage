@@ -69,18 +69,18 @@ struct BackportAsyncImage_Previews: PreviewProvider {
             scale: 1.0,
             transaction: Transaction(animation: .linear),
             content: { phase in
-                if let image = phase.image {
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                    
-                } else if phase.error != nil {
-                    Color.red
-                } else {
-                    Color.blue
-                }
+            if let image = phase.image {
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+
+            } else if phase.error != nil {
+                Color.red
+            } else {
+                Color.blue
             }
+        }
         )
-        .frame(width: 100, height: 100)
+            .frame(width: 100, height: 100)
     }
 }
