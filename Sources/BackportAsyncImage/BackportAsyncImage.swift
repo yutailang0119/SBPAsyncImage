@@ -4,13 +4,34 @@ public struct BackportAsyncImage<Content: View>: View {
     @ObservedObject private var viewModel: ViewModel
     private let content: (AsyncImagePhase) -> Content
 
+    public init(url: URL?, scale: CGFloat = 1) where Content == Image {
+        self.viewModel = ViewModel(url: url, transaction: Transaction())
+        self.content = { $0.image ?? Image("") }
+        self.viewModel.download()
+    }
+
+    public init<I, P>(url: URL?,
+                      scale: CGFloat = 1,
+                      @ViewBuilder content: @escaping (Image) -> I,
+                      @ViewBuilder placeholder: @escaping () -> P) where Content == _ConditionalContent<I, P>, I : View, P : View {
+        self.viewModel = ViewModel(url: url, transaction: Transaction())
+        self.content = { phase -> _ConditionalContent<I, P> in
+            if let image = phase.image {
+                return ViewBuilder.buildEither(first: content(image))
+            } else {
+                return ViewBuilder.buildEither(second: placeholder())
+            }
+        }
+        self.viewModel.download()
+    }
+
     public init(url: URL?,
                 scale: CGFloat,
                 transaction: Transaction,
                 @ViewBuilder content: @escaping (AsyncImagePhase) -> Content) {
         self.viewModel = ViewModel(url: url, transaction: transaction)
         self.content = content
-        viewModel.download()
+        self.viewModel.download()
     }
 
     public var body: some View {
@@ -71,26 +92,44 @@ extension BackportAsyncImage {
 
 struct BackportAsyncImage_Previews: PreviewProvider {
     static var url: URL? {
-        URL(string: "http://httpbin.org/image/webp")
+        URL(string: "http://httpbin.org/image/png")
     }
 
     static var previews: some View {
-        BackportAsyncImage(
-            url: url,
-            scale: 1.0,
-            transaction: Transaction(animation: .linear),
-            content: { phase in
-                if let image = phase.image {
-                    image
+        VStack {
+            BackportAsyncImage(url: url)
+                .frame(width: 100, height: 100)
+
+            BackportAsyncImage(
+                url: url,
+                content: {
+                    $0
                         .resizable()
-                        .aspectRatio(contentMode: .fit)
-                } else if phase.error != nil {
-                    Color.red
-                } else {
-                    Color.blue
+                        .clipShape(Circle())
+                },
+                placeholder: {
+                    Color.black
                 }
-            }
-        )
-        .frame(width: 100, height: 100)
+            )
+            .frame(width: 100, height: 100)
+
+            BackportAsyncImage(
+                url: url,
+                scale: 1.0,
+                transaction: Transaction(animation: .linear),
+                content: { phase in
+                    if let image = phase.image {
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                    } else if phase.error != nil {
+                        Color.red
+                    } else {
+                        Color.blue
+                    }
+                }
+            )
+            .frame(width: 100, height: 100)
+        }
     }
 }
