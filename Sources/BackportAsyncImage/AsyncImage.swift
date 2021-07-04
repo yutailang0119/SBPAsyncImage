@@ -67,12 +67,8 @@ struct AsyncImage_Previews: PreviewProvider {
                     .clipShape(Circle())
             },
                 placeholder: {
-                    if #available(macOS 11.0, *) {
-                        Image(systemName: "square")
-                            .resizable()
-                    } else {
-                        Color.blue
-                    }
+                Image(systemName: "square")
+                    .resizable()
             }
             )
                 .frame(width: 100, height: 100)
