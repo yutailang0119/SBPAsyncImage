@@ -26,8 +26,8 @@ public struct BackportAsyncImage<Content: View>: View {
     }
 
     public init(url: URL?,
-                scale: CGFloat,
-                transaction: Transaction,
+                scale: CGFloat = 1,
+                transaction: Transaction = Transaction(),
                 @ViewBuilder content: @escaping (AsyncImagePhase) -> Content) {
         self.viewModel = ViewModel(url: url, transaction: transaction)
         self.content = content
@@ -115,7 +115,6 @@ struct BackportAsyncImage_Previews: PreviewProvider {
 
             BackportAsyncImage(
                 url: url,
-                scale: 1.0,
                 transaction: Transaction(animation: .linear),
                 content: { phase in
                     if let image = phase.image {
