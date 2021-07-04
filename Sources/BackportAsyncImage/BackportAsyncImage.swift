@@ -39,54 +39,52 @@ public struct BackportAsyncImage<Content: View>: View {
     }
 }
 
-extension BackportAsyncImage {
-    private final class ViewModel: ObservableObject {
-        private let url: URL?
-        private let transaction: Transaction
-        @Published var phase: AsyncImagePhase
+private final class ViewModel: ObservableObject {
+    private let url: URL?
+    private let transaction: Transaction
+    @Published var phase: AsyncImagePhase
 
-        init(url: URL?, transaction: Transaction) {
-            self.url = url
-            self.transaction = transaction
-            self.phase = .empty
+    init(url: URL?, transaction: Transaction) {
+        self.url = url
+        self.transaction = transaction
+        self.phase = .empty
+    }
+
+    func download() {
+        guard let url = url else {
+            return
         }
+        URLSession.shared.dataTask(with: url) { data, _, error in
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else {
+                    return
+                }
+                if let error = error {
+                    self.phase = .failure(error)
+                    return
+                }
 
-        func download() {
-            guard let url = url else {
-                return
-            }
-            URLSession.shared.dataTask(with: url) { data, _, error in
-                DispatchQueue.main.async { [weak self] in
-                    guard let self = self else {
-                        return
-                    }
-                    if let error = error {
-                        self.phase = .failure(error)
-                        return
-                    }
-
-                    withTransaction(self.transaction) {
-                        self.phase = data
-                            .flatMap(self.image(from:))
-                            .map{ AsyncImagePhase.success($0) }
-                            ?? .empty
-                    }
+                withTransaction(self.transaction) {
+                    self.phase = data
+                        .flatMap(self.image(from:))
+                        .map{ AsyncImagePhase.success($0) }
+                        ?? .empty
                 }
             }
-            .resume()
         }
+        .resume()
+    }
 
-        private func image(from data: Data?) -> Image? {
-            #if os(macOS)
-            return data
-                .flatMap(NSImage.init(data:))
-                .map(Image.init(nsImage:))
-            #else
-            return data
-                .flatMap(UIImage.init(data:))
-                .map(Image.init(uiImage:))
-            #endif
-        }
+    private func image(from data: Data?) -> Image? {
+        #if os(macOS)
+        return data
+            .flatMap(NSImage.init(data:))
+            .map(Image.init(nsImage:))
+        #else
+        return data
+            .flatMap(UIImage.init(data:))
+            .map(Image.init(uiImage:))
+        #endif
     }
 }
 
