@@ -46,14 +46,25 @@ extension BackportAsyncImage {
 
                     withTransaction(self.transaction) {
                         self.phase = data
-                            .flatMap(UIImage.init(data:))
-                            .map(Image.init(uiImage:))
+                            .flatMap(self.image(from:))
                             .map{ AsyncImagePhase.success($0) }
                         ?? .empty
                     }
                 }
             }
             .resume()
+        }
+
+        private func image(from data: Data?) -> Image? {
+#if os(macOS)
+            return data
+                .flatMap(NSImage.init(data:))
+                .map(Image.init(nsImage:))
+#else
+            return data
+                .flatMap(UIImage.init(data:))
+                .map(Image.init(uiImage:))
+#endif
         }
     }
 }
