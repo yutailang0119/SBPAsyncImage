@@ -8,7 +8,7 @@ struct BackportAsyncImage<Content: View>: View {
          scale: CGFloat,
          transaction: Transaction,
          @ViewBuilder content: @escaping (AsyncImagePhase) -> Content) {
-        self._viewModel = ObservedObject(initialValue: ViewModel(url: url, transaction: transaction))
+        self.viewModel = ViewModel(url: url, transaction: transaction)
         self.content = content
         viewModel.download()
     }
