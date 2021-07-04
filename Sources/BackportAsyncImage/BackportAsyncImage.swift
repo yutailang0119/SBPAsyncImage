@@ -1,19 +1,19 @@
 import SwiftUI
 
-struct BackportAsyncImage<Content: View>: View {
+public struct BackportAsyncImage<Content: View>: View {
     @ObservedObject private var viewModel: ViewModel
     private let content: (AsyncImagePhase) -> Content
 
-    init(url: URL?,
-         scale: CGFloat,
-         transaction: Transaction,
-         @ViewBuilder content: @escaping (AsyncImagePhase) -> Content) {
+    public init(url: URL?,
+                scale: CGFloat,
+                transaction: Transaction,
+                @ViewBuilder content: @escaping (AsyncImagePhase) -> Content) {
         self.viewModel = ViewModel(url: url, transaction: transaction)
         self.content = content
         viewModel.download()
     }
 
-    var body: some View {
+    public var body: some View {
         content(viewModel.phase)
     }
 }
