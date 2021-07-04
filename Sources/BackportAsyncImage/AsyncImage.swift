@@ -67,21 +67,7 @@ struct AsyncImage_Previews: PreviewProvider {
                     .clipShape(Circle())
             },
                 placeholder: {
-                    Color.blue
-            }
-            )
-                .frame(width: 100, height: 100)
-
-            AsyncImage(
-                url: url,
-                content: { phase in
-                if let image = phase.image {
-                    image // Displays the loaded image.
-                } else if phase.error != nil {
-                    Color.red // Indicates an error.
-                } else {
-                    Color.blue // Acts as a placeholder.
-                }
+                    Color.black
             }
             )
                 .frame(width: 100, height: 100)
