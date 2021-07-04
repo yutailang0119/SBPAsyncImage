@@ -13,12 +13,10 @@ public struct AsyncImage<Content: View>: View {
         self.content = { $0.image ?? Image("") }
     }
 
-    public init<I, P>(
-        url: URL?,
-        scale: CGFloat = 1,
-        @ViewBuilder content: @escaping (Image) -> I,
-        @ViewBuilder placeholder: @escaping () -> P
-    ) where Content == _ConditionalContent<I, P>, I : View, P : View {
+    public init<I, P>(url: URL?,
+                      scale: CGFloat = 1,
+                      @ViewBuilder content: @escaping (Image) -> I,
+                      @ViewBuilder placeholder: @escaping () -> P) where Content == _ConditionalContent<I, P>, I : View, P : View {
         self.url = url
         self.scale = scale
         self.transaction = Transaction()
