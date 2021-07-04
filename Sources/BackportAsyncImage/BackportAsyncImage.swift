@@ -88,6 +88,58 @@ private final class ViewModel: ObservableObject {
     }
 }
 
+@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
+private struct ContentBody<Content: View>: View {
+    @StateObject private var viewModel: ViewModel
+    private let content: (AsyncImagePhase) -> Content
+
+    init(viewModel: ViewModel,
+         @ViewBuilder content: @escaping (AsyncImagePhase) -> Content) {
+        self._viewModel = .init(wrappedValue: viewModel)
+        self.content = content
+        self.viewModel.download()
+    }
+
+    var body: some View {
+        content(viewModel.phase)
+    }
+}
+
+@available(iOS, deprecated: 14.0)
+@available(macOS, deprecated: 11.0)
+@available(tvOS, deprecated: 14.0)
+@available(watchOS, deprecated: 7.0)
+private struct ContentCompatBody<Content: View>: View {
+    struct Body: View {
+        @ObservedObject private var viewModel: ViewModel
+        private let content: (AsyncImagePhase) -> Content
+
+        init(viewModel: ViewModel,
+             @ViewBuilder content: @escaping (AsyncImagePhase) -> Content) {
+            self.viewModel = viewModel
+            self.content = content
+            self.viewModel.download()
+        }
+
+        var body: some View {
+            content(viewModel.phase)
+        }
+    }
+
+    @State private var viewModel: ViewModel
+    private let content: (AsyncImagePhase) -> Content
+
+    init(viewModel: ViewModel,
+         @ViewBuilder content: @escaping (AsyncImagePhase) -> Content) {
+        self.viewModel = viewModel
+        self.content = content
+    }
+
+    var body: Body {
+        Body(viewModel: viewModel, content: content)
+    }
+}
+
 struct BackportAsyncImage_Previews: PreviewProvider {
     static var url: URL? {
         URL(string: "http://httpbin.org/image/png")
