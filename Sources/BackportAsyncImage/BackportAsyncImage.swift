@@ -48,7 +48,7 @@ extension BackportAsyncImage {
                         self.phase = data
                             .flatMap(self.image(from:))
                             .map{ AsyncImagePhase.success($0) }
-                        ?? .empty
+                            ?? .empty
                     }
                 }
             }
@@ -56,15 +56,15 @@ extension BackportAsyncImage {
         }
 
         private func image(from data: Data?) -> Image? {
-#if os(macOS)
+            #if os(macOS)
             return data
                 .flatMap(NSImage.init(data:))
                 .map(Image.init(nsImage:))
-#else
+            #else
             return data
                 .flatMap(UIImage.init(data:))
                 .map(Image.init(uiImage:))
-#endif
+            #endif
         }
     }
 }
@@ -80,18 +80,17 @@ struct BackportAsyncImage_Previews: PreviewProvider {
             scale: 1.0,
             transaction: Transaction(animation: .linear),
             content: { phase in
-            if let image = phase.image {
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-
-            } else if phase.error != nil {
-                Color.red
-            } else {
-                Color.blue
+                if let image = phase.image {
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                } else if phase.error != nil {
+                    Color.red
+                } else {
+                    Color.blue
+                }
             }
-        }
         )
-            .frame(width: 100, height: 100)
+        .frame(width: 100, height: 100)
     }
 }
