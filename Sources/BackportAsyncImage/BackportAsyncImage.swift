@@ -96,7 +96,7 @@ private final class ViewModel: ObservableObject {
             .map(Image.init(nsImage:))
         #else
         return data
-            .flatMap(UIImage.init(data:))
+            .flatMap { UIImage(data: $0, scale: scale) }
             .map(Image.init(uiImage:))
         #endif
     }
