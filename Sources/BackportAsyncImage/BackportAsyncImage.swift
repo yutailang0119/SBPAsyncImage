@@ -161,7 +161,7 @@ struct BackportAsyncImage_Previews: PreviewProvider {
 
     static var previews: some View {
         VStack {
-            BackportAsyncImage(url: url)
+            BackportAsyncImage(url: url, scale: 2.0)
                 .frame(width: 100, height: 100)
 
             BackportAsyncImage(
