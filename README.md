@@ -1,13 +1,13 @@
-# BackportAsyncImage
+# SBPAsyncImage
 
 Backport of [SwiftUI.AsyncImage](https://developer.apple.com/documentation/swiftui/asyncimage) to earlier iOS 15.  
 
 AsyncImage is a view that asynchronously loads and displays an image.  
-BackportAsyncImage provides like AsyncImage behavior and interface.  
+SBPAsyncImage provides like AsyncImage behavior and interface.  
 
 ## A Work In Progress
 
-BackportAsyncImage is still in active development.  
+SBPAsyncImage is still in active development.  
 Please file all bugs, issues, and suggestions as an Issue in the GitHub repository.  
 
 ## Installation
@@ -21,7 +21,7 @@ Please file all bugs, issues, and suggestions as an Issue in the GitHub reposito
 import PackageDescription
 
 let package = Package(
-    name: "BackportAsyncImageSample",
+    name: "SBPAsyncImageSample",
     platforms: [
         .iOS(.v13),
         .macOS(.v10_15),
@@ -29,12 +29,12 @@ let package = Package(
         .watchOS(.v6),
     ],
     dependencies: [
-        .package(url: "https://github.com/yutailang0119/BackportAsyncImage", .branch("main")),
+        .package(url: "https://github.com/yutailang0119/SBPAsyncImage", .branch("main")),
     ],
     targets: [
         .target(
-            name: "Sample",
-            dependencies: ["BackportAsyncImage"]),
+            name: "SBPAsyncImageSample",
+            dependencies: ["SBPAsyncImage"]),
     ]
 )
 ```
@@ -43,7 +43,7 @@ let package = Package(
 
 ```swift
 import SwiftUI
-import BackportAsyncImage
+import SBPAsyncImage
 
 struct ContentView: View {
     var body: some View {
@@ -57,7 +57,7 @@ struct ContentView: View {
 
 ```swift
 import SwiftUI
-import BackportAsyncImage
+import SBPAsyncImage
 
 struct ContentView: View {
     var body: some View {

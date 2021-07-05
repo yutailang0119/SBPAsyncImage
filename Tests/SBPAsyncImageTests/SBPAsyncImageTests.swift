@@ -1,5 +1,5 @@
 import XCTest
 
-final class BackportAsyncImageTests: XCTestCase {
+final class SBPAsyncImageTests: XCTestCase {
     func testExample() throws {}
 }
