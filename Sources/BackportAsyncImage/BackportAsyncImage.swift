@@ -1,7 +1,7 @@
 import SwiftUI
 
 public struct BackportAsyncImage<Content: View>: View {
-    @ObservedObject private var viewModel: ViewModel
+    private let viewModel: ViewModel
     private let content: (AsyncImagePhase) -> Content
 
     public init(url: URL?, scale: CGFloat = 1) where Content == Image {
@@ -35,7 +35,11 @@ public struct BackportAsyncImage<Content: View>: View {
     }
 
     public var body: some View {
-        content(viewModel.phase)
+        if #available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *) {
+            ContentBody(viewModel: viewModel, content: content)
+        } else {
+            ContentCompatBody(viewModel: viewModel, content: content)
+        }
     }
 }
 
