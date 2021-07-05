@@ -1,7 +1,7 @@
 import SwiftUI
 
 public struct BackportAsyncImage<Content: View>: View {
-    @ObservedObject private var viewModel: ViewModel
+    private let viewModel: ViewModel
     private let content: (AsyncImagePhase) -> Content
 
     public init(url: URL?, scale: CGFloat = 1) where Content == Image {
@@ -35,58 +35,112 @@ public struct BackportAsyncImage<Content: View>: View {
     }
 
     public var body: some View {
+        if #available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *) {
+            ContentBody(viewModel: viewModel, content: content)
+        } else {
+            ContentCompatBody(viewModel: viewModel, content: content)
+        }
+    }
+}
+
+private final class ViewModel: ObservableObject {
+    private let url: URL?
+    private let transaction: Transaction
+    @Published var phase: AsyncImagePhase
+
+    init(url: URL?, transaction: Transaction) {
+        self.url = url
+        self.transaction = transaction
+        self.phase = .empty
+    }
+
+    func download() {
+        guard let url = url else {
+            return
+        }
+        URLSession.shared.dataTask(with: url) { data, _, error in
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else {
+                    return
+                }
+                if let error = error {
+                    self.phase = .failure(error)
+                    return
+                }
+
+                withTransaction(self.transaction) {
+                    self.phase = data
+                        .flatMap(self.image(from:))
+                        .map{ AsyncImagePhase.success($0) }
+                        ?? .empty
+                }
+            }
+        }
+        .resume()
+    }
+
+    private func image(from data: Data?) -> Image? {
+        #if os(macOS)
+        return data
+            .flatMap(NSImage.init(data:))
+            .map(Image.init(nsImage:))
+        #else
+        return data
+            .flatMap(UIImage.init(data:))
+            .map(Image.init(uiImage:))
+        #endif
+    }
+}
+
+@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
+private struct ContentBody<Content: View>: View {
+    @StateObject private var viewModel: ViewModel
+    private let content: (AsyncImagePhase) -> Content
+
+    init(viewModel: ViewModel,
+         @ViewBuilder content: @escaping (AsyncImagePhase) -> Content) {
+        self._viewModel = .init(wrappedValue: viewModel)
+        self.content = content
+        self.viewModel.download()
+    }
+
+    var body: some View {
         content(viewModel.phase)
     }
 }
 
-extension BackportAsyncImage {
-    private final class ViewModel: ObservableObject {
-        private let url: URL?
-        private let transaction: Transaction
-        @Published var phase: AsyncImagePhase
+@available(iOS, deprecated: 14.0)
+@available(macOS, deprecated: 11.0)
+@available(tvOS, deprecated: 14.0)
+@available(watchOS, deprecated: 7.0)
+private struct ContentCompatBody<Content: View>: View {
+    struct Body: View {
+        @ObservedObject private var viewModel: ViewModel
+        private let content: (AsyncImagePhase) -> Content
 
-        init(url: URL?, transaction: Transaction) {
-            self.url = url
-            self.transaction = transaction
-            self.phase = .empty
+        init(viewModel: ViewModel,
+             @ViewBuilder content: @escaping (AsyncImagePhase) -> Content) {
+            self.viewModel = viewModel
+            self.content = content
+            self.viewModel.download()
         }
 
-        func download() {
-            guard let url = url else {
-                return
-            }
-            URLSession.shared.dataTask(with: url) { data, _, error in
-                DispatchQueue.main.async { [weak self] in
-                    guard let self = self else {
-                        return
-                    }
-                    if let error = error {
-                        self.phase = .failure(error)
-                        return
-                    }
-
-                    withTransaction(self.transaction) {
-                        self.phase = data
-                            .flatMap(self.image(from:))
-                            .map{ AsyncImagePhase.success($0) }
-                            ?? .empty
-                    }
-                }
-            }
-            .resume()
+        var body: some View {
+            content(viewModel.phase)
         }
+    }
 
-        private func image(from data: Data?) -> Image? {
-            #if os(macOS)
-            return data
-                .flatMap(NSImage.init(data:))
-                .map(Image.init(nsImage:))
-            #else
-            return data
-                .flatMap(UIImage.init(data:))
-                .map(Image.init(uiImage:))
-            #endif
-        }
+    @State private var viewModel: ViewModel
+    private let content: (AsyncImagePhase) -> Content
+
+    init(viewModel: ViewModel,
+         @ViewBuilder content: @escaping (AsyncImagePhase) -> Content) {
+        self.viewModel = viewModel
+        self.content = content
+    }
+
+    var body: Body {
+        Body(viewModel: viewModel, content: content)
     }
 }
 
