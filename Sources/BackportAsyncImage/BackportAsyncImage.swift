@@ -91,6 +91,7 @@ private final class ViewModel: ObservableObject {
 
     private func image(from data: Data?) -> Image? {
         #if os(macOS)
+        // TODO: Support scale on macOS
         return data
             .flatMap(NSImage.init(data:))
             .map(Image.init(nsImage:))
