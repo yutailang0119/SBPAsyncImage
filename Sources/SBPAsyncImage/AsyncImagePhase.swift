@@ -1,5 +1,9 @@
 import SwiftUI
 
+@available(iOS, deprecated: 15.0, renamed: "SwiftUI.AsyncImagePhase")
+@available(macOS, deprecated: 12.0, renamed: "SwiftUI.AsyncImagePhase")
+@available(tvOS, deprecated: 15.0, renamed: "SwiftUI.AsyncImagePhase")
+@available(watchOS, deprecated: 8.0, renamed: "SwiftUI.AsyncImagePhase")
 public enum AsyncImagePhase {
     case empty
     case success(Image)
