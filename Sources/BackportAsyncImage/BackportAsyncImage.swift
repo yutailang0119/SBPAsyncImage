@@ -5,7 +5,9 @@ public struct BackportAsyncImage<Content: View>: View {
     private let content: (AsyncImagePhase) -> Content
 
     public init(url: URL?, scale: CGFloat = 1) where Content == Image {
-        self.viewModel = ViewModel(url: url, transaction: Transaction())
+        self.viewModel = ViewModel(url: url,
+                                   scale: scale,
+                                   transaction: Transaction())
         self.content = { $0.image ?? Image("") }
         self.viewModel.download()
     }
@@ -14,7 +16,9 @@ public struct BackportAsyncImage<Content: View>: View {
                       scale: CGFloat = 1,
                       @ViewBuilder content: @escaping (Image) -> I,
                       @ViewBuilder placeholder: @escaping () -> P) where Content == _ConditionalContent<I, P>, I : View, P : View {
-        self.viewModel = ViewModel(url: url, transaction: Transaction())
+        self.viewModel = ViewModel(url: url,
+                                   scale: scale,
+                                   transaction: Transaction())
         self.content = { phase -> _ConditionalContent<I, P> in
             if let image = phase.image {
                 return ViewBuilder.buildEither(first: content(image))
@@ -29,7 +33,9 @@ public struct BackportAsyncImage<Content: View>: View {
                 scale: CGFloat = 1,
                 transaction: Transaction = Transaction(),
                 @ViewBuilder content: @escaping (AsyncImagePhase) -> Content) {
-        self.viewModel = ViewModel(url: url, transaction: transaction)
+        self.viewModel = ViewModel(url: url,
+                                   scale: scale,
+                                   transaction: transaction)
         self.content = content
         self.viewModel.download()
     }
@@ -45,11 +51,15 @@ public struct BackportAsyncImage<Content: View>: View {
 
 private final class ViewModel: ObservableObject {
     private let url: URL?
+    private let scale: CGFloat
     private let transaction: Transaction
     @Published var phase: AsyncImagePhase
 
-    init(url: URL?, transaction: Transaction) {
+    init(url: URL?,
+         scale: CGFloat,
+         transaction: Transaction) {
         self.url = url
+        self.scale = scale
         self.transaction = transaction
         self.phase = .empty
     }
