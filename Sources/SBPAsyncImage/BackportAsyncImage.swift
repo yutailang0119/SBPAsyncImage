@@ -13,7 +13,6 @@ public struct BackportAsyncImage<Content: View>: View {
                                    scale: scale,
                                    transaction: Transaction())
         self.content = { $0.image ?? Image("") }
-        self.viewModel.download()
     }
 
     public init<I, P>(url: URL?,
@@ -30,7 +29,6 @@ public struct BackportAsyncImage<Content: View>: View {
                 return ViewBuilder.buildEither(second: placeholder())
             }
         }
-        self.viewModel.download()
     }
 
     public init(url: URL?,
@@ -41,7 +39,6 @@ public struct BackportAsyncImage<Content: View>: View {
                                    scale: scale,
                                    transaction: transaction)
         self.content = content
-        self.viewModel.download()
     }
 
     public var body: some View {
@@ -66,9 +63,7 @@ private final class ViewModel: ObservableObject {
         self.scale = scale
         self.transaction = transaction
         self.phase = .empty
-    }
 
-    func download() {
         guard let url = url else {
             return
         }
@@ -116,7 +111,6 @@ private struct ContentBody<Content: View>: View {
          @ViewBuilder content: @escaping (AsyncImagePhase) -> Content) {
         self._viewModel = .init(wrappedValue: viewModel)
         self.content = content
-        self.viewModel.download()
     }
 
     var body: some View {
@@ -137,7 +131,6 @@ private struct ContentCompatBody<Content: View>: View {
              @ViewBuilder content: @escaping (AsyncImagePhase) -> Content) {
             self.viewModel = viewModel
             self.content = content
-            self.viewModel.download()
         }
 
         var body: some View {
