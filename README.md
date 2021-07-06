@@ -1,5 +1,12 @@
 # SBPAsyncImage
 
+<p align="left">
+  <a href="https://developer.apple.com/swift"><img alt="Swift 5.4" src="https://img.shields.io/badge/Swift-5.4-orange.svg?style=flat"/></a>
+  <a href="https://developer.apple.com/xcode/swiftui/"><img alt="SwiftUI" src="https://img.shields.io/badge/SwiftUI-blue.svg?style=flat"/></a>
+  <a href="https://swift.org/package-manager/"><img alt="Swift Package Manager" src="https://img.shields.io/badge/Swift_Package_Manager-compatible-green.svg?style=flat"/></a>
+  <a href="https://github.com/yutailang0119/SBPAsyncImage/blob/main/LICENSE"><img alt="Lincense" src="https://img.shields.io/badge/license-MIT-black.svg?style=flat"/></a>
+</p>
+
 Backport of [SwiftUI.AsyncImage](https://developer.apple.com/documentation/swiftui/asyncimage) to earlier iOS 15.  
 
 AsyncImage is a view that asynchronously loads and displays an image.  
