@@ -46,7 +46,7 @@ let package = Package(
 )
 ```
 
-## Usege
+## Usage
 
 ```swift
 import SwiftUI
