@@ -1,4 +1,4 @@
-@available(iOS, deprecated: 13.0, renamed: "SwiftUI.AsyncImage")
+@available(iOS, deprecated: 15.0, renamed: "SwiftUI.AsyncImage")
 @available(macOS, deprecated: 12.0, renamed: "SwiftUI.AsyncImage")
 @available(tvOS, deprecated: 15.0, renamed: "SwiftUI.AsyncImage")
 @available(watchOS, deprecated: 8.0, renamed: "SwiftUI.AsyncImage")
