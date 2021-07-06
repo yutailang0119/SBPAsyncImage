@@ -5,13 +5,15 @@ import SwiftUI
 @available(tvOS, deprecated: 15.0, renamed: "SwiftUI.AsyncImage")
 @available(watchOS, deprecated: 8.0, renamed: "SwiftUI.AsyncImage")
 public struct BackportAsyncImage<Content: View>: View {
-    private let viewModel: ViewModel
+    private let url: URL?
+    private let scale: CGFloat
+    private let transaction: Transaction
     private let content: (AsyncImagePhase) -> Content
 
     public init(url: URL?, scale: CGFloat = 1) where Content == Image {
-        self.viewModel = ViewModel(url: url,
-                                   scale: scale,
-                                   transaction: Transaction())
+        self.url = url
+        self.scale = scale
+        self.transaction = Transaction()
         self.content = { $0.image ?? Image("") }
     }
 
@@ -19,9 +21,9 @@ public struct BackportAsyncImage<Content: View>: View {
                       scale: CGFloat = 1,
                       @ViewBuilder content: @escaping (Image) -> I,
                       @ViewBuilder placeholder: @escaping () -> P) where Content == _ConditionalContent<I, P>, I : View, P : View {
-        self.viewModel = ViewModel(url: url,
-                                   scale: scale,
-                                   transaction: Transaction())
+        self.url = url
+        self.scale = scale
+        self.transaction = Transaction()
         self.content = { phase -> _ConditionalContent<I, P> in
             if let image = phase.image {
                 return ViewBuilder.buildEither(first: content(image))
@@ -35,17 +37,23 @@ public struct BackportAsyncImage<Content: View>: View {
                 scale: CGFloat = 1,
                 transaction: Transaction = Transaction(),
                 @ViewBuilder content: @escaping (AsyncImagePhase) -> Content) {
-        self.viewModel = ViewModel(url: url,
-                                   scale: scale,
-                                   transaction: transaction)
+        self.url = url
+        self.scale = scale
+        self.transaction = transaction
         self.content = content
     }
 
     public var body: some View {
         if #available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *) {
-            ContentBody(viewModel: viewModel, content: content)
+            ContentBody(url: url,
+                        scale: scale,
+                        transaction: transaction,
+                        content: content)
         } else {
-            ContentCompatBody(viewModel: viewModel, content: content)
+            ContentCompatBody(url: url,
+                              scale: scale,
+                              transaction: transaction,
+                              content: content)
         }
     }
 }
@@ -106,9 +114,13 @@ private struct ContentBody<Content: View>: View {
     @StateObject private var viewModel: ViewModel
     private let content: (AsyncImagePhase) -> Content
 
-    init(viewModel: ViewModel,
+    init(url: URL?,
+         scale: CGFloat,
+         transaction: Transaction,
          @ViewBuilder content: @escaping (AsyncImagePhase) -> Content) {
-        self._viewModel = .init(wrappedValue: viewModel)
+        self._viewModel = .init(wrappedValue: ViewModel(url: url,
+                                                        scale: scale,
+                                                        transaction: transaction))
         self.content = content
     }
 
@@ -140,9 +152,11 @@ private struct ContentCompatBody<Content: View>: View {
     @State private var viewModel: ViewModel
     private let content: (AsyncImagePhase) -> Content
 
-    init(viewModel: ViewModel,
+    init(url: URL?,
+         scale: CGFloat,
+         transaction: Transaction,
          @ViewBuilder content: @escaping (AsyncImagePhase) -> Content) {
-        self.viewModel = viewModel
+        self.viewModel = ViewModel(url: url, scale: scale, transaction: transaction)
         self.content = content
     }
 
