@@ -73,16 +73,13 @@ private final class ViewModel: ObservableObject {
         }
         URLSession.shared.dataTask(with: url) { data, _, error in
             DispatchQueue.main.async { [weak self] in
-                guard let self = self else {
-                    return
-                }
                 if let error = error {
-                    self.phase = .failure(error)
+                    self?.phase = .failure(error)
                     return
                 }
 
                 withTransaction(transaction) {
-                    self.phase = self.image(from: data, scale: scale)
+                    self?.phase = self?.image(from: data, scale: scale)
                         .map{ AsyncImagePhase.success($0) }
                         ?? .empty
                 }
