@@ -59,19 +59,15 @@ public struct BackportAsyncImage<Content: View>: View {
 }
 
 private final class ViewModel: ObservableObject {
-    private let url: URL?
-    private let scale: CGFloat
-    private let transaction: Transaction
     @Published var phase: AsyncImagePhase
 
-    init(url: URL?,
-         scale: CGFloat,
-         transaction: Transaction) {
-        self.url = url
-        self.scale = scale
-        self.transaction = transaction
+    init() {
         self.phase = .empty
+    }
 
+    func download(url: URL?,
+                  scale: CGFloat,
+                  transaction: Transaction) {
         guard let url = url else {
             return
         }
@@ -85,8 +81,8 @@ private final class ViewModel: ObservableObject {
                     return
                 }
 
-                withTransaction(self.transaction) {
-                    self.phase = self.image(from: data)
+                withTransaction(transaction) {
+                    self.phase = self.image(from: data, scale: scale)
                         .map{ AsyncImagePhase.success($0) }
                         ?? .empty
                 }
@@ -95,7 +91,7 @@ private final class ViewModel: ObservableObject {
         .resume()
     }
 
-    private func image(from data: Data?) -> Image? {
+    private func image(from data: Data?, scale: CGFloat) -> Image? {
         #if os(macOS)
         // TODO: Support scale on macOS
         return data
@@ -111,21 +107,27 @@ private final class ViewModel: ObservableObject {
 
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
 private struct ContentBody<Content: View>: View {
-    @StateObject private var viewModel: ViewModel
+    @StateObject private var viewModel = ViewModel()
+    private let url: URL?
+    private let scale: CGFloat
+    private let transaction: Transaction
     private let content: (AsyncImagePhase) -> Content
 
     init(url: URL?,
          scale: CGFloat,
          transaction: Transaction,
          @ViewBuilder content: @escaping (AsyncImagePhase) -> Content) {
-        self._viewModel = .init(wrappedValue: ViewModel(url: url,
-                                                        scale: scale,
-                                                        transaction: transaction))
+        self.url = url
+        self.scale = scale
+        self.transaction = transaction
         self.content = content
     }
 
     var body: some View {
         content(viewModel.phase)
+            .onAppear {
+                viewModel.download(url: url, scale: scale, transaction: transaction)
+            }
     }
 }
 
@@ -139,9 +141,13 @@ private struct ContentCompatBody<Content: View>: View {
         private let content: (AsyncImagePhase) -> Content
 
         init(viewModel: ViewModel,
+             url: URL?,
+             scale: CGFloat,
+             transaction: Transaction,
              @ViewBuilder content: @escaping (AsyncImagePhase) -> Content) {
             self.viewModel = viewModel
             self.content = content
+            self.viewModel.download(url: url, scale: scale, transaction: transaction)
         }
 
         var body: some View {
@@ -149,19 +155,28 @@ private struct ContentCompatBody<Content: View>: View {
         }
     }
 
-    @State private var viewModel: ViewModel
+    @State private var viewModel = ViewModel()
+    private let url: URL?
+    private let scale: CGFloat
+    private let transaction: Transaction
     private let content: (AsyncImagePhase) -> Content
 
     init(url: URL?,
          scale: CGFloat,
          transaction: Transaction,
          @ViewBuilder content: @escaping (AsyncImagePhase) -> Content) {
-        self.viewModel = ViewModel(url: url, scale: scale, transaction: transaction)
+        self.url = url
+        self.scale = scale
+        self.transaction = transaction
         self.content = content
     }
 
     var body: Body {
-        Body(viewModel: viewModel, content: content)
+        Body(viewModel: viewModel,
+             url: url,
+             scale: scale,
+             transaction: transaction,
+             content: content)
     }
 }
 
