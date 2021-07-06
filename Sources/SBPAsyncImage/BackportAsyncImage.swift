@@ -78,8 +78,7 @@ private final class ViewModel: ObservableObject {
                 }
 
                 withTransaction(self.transaction) {
-                    self.phase = data
-                        .flatMap(self.image(from:))
+                    self.phase = self.image(from: data)
                         .map{ AsyncImagePhase.success($0) }
                         ?? .empty
                 }
