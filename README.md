@@ -28,7 +28,7 @@ Please file all bugs, issues, and suggestions as an Issue in the GitHub reposito
 import PackageDescription
 
 let package = Package(
-    name: "SBPAsyncImageSample",
+    name: "SBPAsyncImageExample",
     platforms: [
         .iOS(.v13),
         .macOS(.v10_15),
@@ -36,11 +36,11 @@ let package = Package(
         .watchOS(.v6),
     ],
     dependencies: [
-        .package(url: "https://github.com/yutailang0119/SBPAsyncImage", .branch("main")),
+        .package(url: "https://github.com/yutailang0119/SBPAsyncImage", .exact("0.1.0")),
     ],
     targets: [
         .target(
-            name: "SBPAsyncImageSample",
+            name: "SBPAsyncImageExample",
             dependencies: ["SBPAsyncImage"]),
     ]
 )
