@@ -7,10 +7,11 @@
   <a href="https://github.com/yutailang0119/SBPAsyncImage/blob/main/LICENSE"><img alt="Lincense" src="https://img.shields.io/badge/license-MIT-black.svg?style=flat"/></a>
 </p>
 
-Backport of [SwiftUI.AsyncImage](https://developer.apple.com/documentation/swiftui/asyncimage) to earlier iOS 15.  
+Backport of [SwiftUI.AsyncImage](https://developer.apple.com/documentation/swiftui/asyncimage) to iOS 14, macOS 11, tvOS 14 and watchOS 7 and earlier.   
 
 AsyncImage is a view that asynchronously loads and displays an image.  
-SBPAsyncImage provides like AsyncImage behavior and interface.  
+However, AsyncImage is available from iOS 15, macOS 12, tvOS 15, and watchOS 8.  
+SBPAsyncImage provides interface and behavior of AsyncImage to earlier OS.   
 
 ## A Work In Progress
 
