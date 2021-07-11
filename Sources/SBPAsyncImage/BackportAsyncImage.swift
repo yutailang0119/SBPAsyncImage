@@ -58,7 +58,7 @@ public struct BackportAsyncImage<Content: View>: View {
     }
 }
 
-private final class ViewModel: ObservableObject {
+private final class Provider: ObservableObject {
     @Published var phase: AsyncImagePhase
 
     init() {
@@ -105,7 +105,7 @@ private final class ViewModel: ObservableObject {
 
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
 private struct ContentBody<Content: View>: View {
-    @StateObject private var viewModel = ViewModel()
+    @StateObject private var provider = Provider()
     private let url: URL?
     private let scale: CGFloat
     private let transaction: Transaction
@@ -122,9 +122,9 @@ private struct ContentBody<Content: View>: View {
     }
 
     var body: some View {
-        content(viewModel.phase)
+        content(provider.phase)
             .onAppear {
-                viewModel.download(url: url, scale: scale, transaction: transaction)
+                provider.download(url: url, scale: scale, transaction: transaction)
             }
     }
 }
@@ -135,25 +135,25 @@ private struct ContentBody<Content: View>: View {
 @available(watchOS, deprecated: 7.0)
 private struct ContentCompatBody<Content: View>: View {
     struct Body: View {
-        @ObservedObject private var viewModel: ViewModel
+        @ObservedObject private var provider: Provider
         private let content: (AsyncImagePhase) -> Content
 
-        init(viewModel: ViewModel,
+        init(provider: Provider,
              url: URL?,
              scale: CGFloat,
              transaction: Transaction,
              @ViewBuilder content: @escaping (AsyncImagePhase) -> Content) {
-            self.viewModel = viewModel
+            self.provider = provider
             self.content = content
-            self.viewModel.download(url: url, scale: scale, transaction: transaction)
+            self.provider.download(url: url, scale: scale, transaction: transaction)
         }
 
         var body: some View {
-            content(viewModel.phase)
+            content(provider.phase)
         }
     }
 
-    @State private var viewModel = ViewModel()
+    @State private var provider = Provider()
     private let url: URL?
     private let scale: CGFloat
     private let transaction: Transaction
@@ -170,7 +170,7 @@ private struct ContentCompatBody<Content: View>: View {
     }
 
     var body: Body {
-        Body(viewModel: viewModel,
+        Body(provider: provider,
              url: url,
              scale: scale,
              transaction: transaction,
