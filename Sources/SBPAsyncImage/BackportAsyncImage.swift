@@ -5,13 +5,15 @@ import SwiftUI
 @available(tvOS, deprecated: 15.0, renamed: "SwiftUI.AsyncImage")
 @available(watchOS, deprecated: 8.0, renamed: "SwiftUI.AsyncImage")
 public struct BackportAsyncImage<Content: View>: View {
-    private let viewModel: ViewModel
+    private let url: URL?
+    private let scale: CGFloat
+    private let transaction: Transaction
     private let content: (AsyncImagePhase) -> Content
 
     public init(url: URL?, scale: CGFloat = 1) where Content == Image {
-        self.viewModel = ViewModel(url: url,
-                                   scale: scale,
-                                   transaction: Transaction())
+        self.url = url
+        self.scale = scale
+        self.transaction = Transaction()
         self.content = { $0.image ?? Image("") }
     }
 
@@ -19,9 +21,9 @@ public struct BackportAsyncImage<Content: View>: View {
                       scale: CGFloat = 1,
                       @ViewBuilder content: @escaping (Image) -> I,
                       @ViewBuilder placeholder: @escaping () -> P) where Content == _ConditionalContent<I, P>, I : View, P : View {
-        self.viewModel = ViewModel(url: url,
-                                   scale: scale,
-                                   transaction: Transaction())
+        self.url = url
+        self.scale = scale
+        self.transaction = Transaction()
         self.content = { phase -> _ConditionalContent<I, P> in
             if let image = phase.image {
                 return ViewBuilder.buildEither(first: content(image))
@@ -35,50 +37,50 @@ public struct BackportAsyncImage<Content: View>: View {
                 scale: CGFloat = 1,
                 transaction: Transaction = Transaction(),
                 @ViewBuilder content: @escaping (AsyncImagePhase) -> Content) {
-        self.viewModel = ViewModel(url: url,
-                                   scale: scale,
-                                   transaction: transaction)
+        self.url = url
+        self.scale = scale
+        self.transaction = transaction
         self.content = content
     }
 
     public var body: some View {
         if #available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *) {
-            ContentBody(viewModel: viewModel, content: content)
+            ContentBody(url: url,
+                        scale: scale,
+                        transaction: transaction,
+                        content: content)
         } else {
-            ContentCompatBody(viewModel: viewModel, content: content)
+            ContentCompatBody(url: url,
+                              scale: scale,
+                              transaction: transaction,
+                              content: content)
         }
     }
 }
 
 private final class ViewModel: ObservableObject {
-    private let url: URL?
-    private let scale: CGFloat
-    private let transaction: Transaction
     @Published var phase: AsyncImagePhase
 
-    init(url: URL?,
-         scale: CGFloat,
-         transaction: Transaction) {
-        self.url = url
-        self.scale = scale
-        self.transaction = transaction
+    init() {
         self.phase = .empty
+    }
 
-        guard let url = url else {
+    func download(url: URL?,
+                  scale: CGFloat,
+                  transaction: Transaction) {
+        guard let url = url,
+              case(.empty) = phase else {
             return
         }
         URLSession.shared.dataTask(with: url) { data, _, error in
             DispatchQueue.main.async { [weak self] in
-                guard let self = self else {
-                    return
-                }
                 if let error = error {
-                    self.phase = .failure(error)
+                    self?.phase = .failure(error)
                     return
                 }
 
-                withTransaction(self.transaction) {
-                    self.phase = self.image(from: data)
+                withTransaction(transaction) {
+                    self?.phase = self?.image(from: data, scale: scale)
                         .map{ AsyncImagePhase.success($0) }
                         ?? .empty
                 }
@@ -87,7 +89,7 @@ private final class ViewModel: ObservableObject {
         .resume()
     }
 
-    private func image(from data: Data?) -> Image? {
+    private func image(from data: Data?, scale: CGFloat) -> Image? {
         #if os(macOS)
         // TODO: Support scale on macOS
         return data
@@ -103,17 +105,27 @@ private final class ViewModel: ObservableObject {
 
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
 private struct ContentBody<Content: View>: View {
-    @StateObject private var viewModel: ViewModel
+    @StateObject private var viewModel = ViewModel()
+    private let url: URL?
+    private let scale: CGFloat
+    private let transaction: Transaction
     private let content: (AsyncImagePhase) -> Content
 
-    init(viewModel: ViewModel,
+    init(url: URL?,
+         scale: CGFloat,
+         transaction: Transaction,
          @ViewBuilder content: @escaping (AsyncImagePhase) -> Content) {
-        self._viewModel = .init(wrappedValue: viewModel)
+        self.url = url
+        self.scale = scale
+        self.transaction = transaction
         self.content = content
     }
 
     var body: some View {
         content(viewModel.phase)
+            .onAppear {
+                viewModel.download(url: url, scale: scale, transaction: transaction)
+            }
     }
 }
 
@@ -127,9 +139,13 @@ private struct ContentCompatBody<Content: View>: View {
         private let content: (AsyncImagePhase) -> Content
 
         init(viewModel: ViewModel,
+             url: URL?,
+             scale: CGFloat,
+             transaction: Transaction,
              @ViewBuilder content: @escaping (AsyncImagePhase) -> Content) {
             self.viewModel = viewModel
             self.content = content
+            self.viewModel.download(url: url, scale: scale, transaction: transaction)
         }
 
         var body: some View {
@@ -137,17 +153,28 @@ private struct ContentCompatBody<Content: View>: View {
         }
     }
 
-    @State private var viewModel: ViewModel
+    @State private var viewModel = ViewModel()
+    private let url: URL?
+    private let scale: CGFloat
+    private let transaction: Transaction
     private let content: (AsyncImagePhase) -> Content
 
-    init(viewModel: ViewModel,
+    init(url: URL?,
+         scale: CGFloat,
+         transaction: Transaction,
          @ViewBuilder content: @escaping (AsyncImagePhase) -> Content) {
-        self.viewModel = viewModel
+        self.url = url
+        self.scale = scale
+        self.transaction = transaction
         self.content = content
     }
 
     var body: Body {
-        Body(viewModel: viewModel, content: content)
+        Body(viewModel: viewModel,
+             url: url,
+             scale: scale,
+             transaction: transaction,
+             content: content)
     }
 }
 
