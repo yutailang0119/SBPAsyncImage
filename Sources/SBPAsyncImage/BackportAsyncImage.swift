@@ -126,6 +126,9 @@ private struct ContentBody<Content: View>: View {
             .onAppear {
                 provider.download(url: url, scale: scale, transaction: transaction)
             }
+            .onChange(of: url) { url in
+                provider.download(url: url, scale: scale, transaction: transaction)
+            }
     }
 }
 
