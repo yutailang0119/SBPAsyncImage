@@ -68,8 +68,7 @@ private final class Provider: ObservableObject {
     func download(url: URL?,
                   scale: CGFloat,
                   transaction: Transaction) {
-        guard let url = url,
-              case(.empty) = phase else {
+        guard let url = url else {
             return
         }
         URLSession.shared.dataTask(with: url) { data, _, error in
