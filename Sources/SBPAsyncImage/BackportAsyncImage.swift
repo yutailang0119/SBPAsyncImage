@@ -65,9 +65,9 @@ private final class Provider: ObservableObject {
         self.phase = .empty
     }
 
-    func download(url: URL?,
-                  scale: CGFloat,
-                  transaction: Transaction) {
+    func task(url: URL?,
+              scale: CGFloat,
+              transaction: Transaction) {
         guard let url = url else {
             return
         }
@@ -123,10 +123,10 @@ private struct ContentBody<Content: View>: View {
     var body: some View {
         content(provider.phase)
             .onAppear {
-                provider.download(url: url, scale: scale, transaction: transaction)
+                provider.task(url: url, scale: scale, transaction: transaction)
             }
             .onChange(of: url) { url in
-                provider.download(url: url, scale: scale, transaction: transaction)
+                provider.task(url: url, scale: scale, transaction: transaction)
             }
     }
 }
@@ -147,7 +147,7 @@ private struct ContentCompatBody<Content: View>: View {
              @ViewBuilder content: @escaping (AsyncImagePhase) -> Content) {
             self.provider = provider
             self.content = content
-            self.provider.download(url: url, scale: scale, transaction: transaction)
+            self.provider.task(url: url, scale: scale, transaction: transaction)
         }
 
         var body: some View {
